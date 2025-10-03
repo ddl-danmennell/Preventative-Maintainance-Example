@@ -4,7 +4,12 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(rm:*)",
-      "Bash(python:*)"
+      "Bash(python:*)",
+      "Bash(awk:*)",
+      "WebSearch",
+      "Read(//mnt/data/**)",
+      "Read(//mnt/artifacts/**)",
+      "Bash(pip install:*)"
     ],
     "deny": [],
     "ask": []

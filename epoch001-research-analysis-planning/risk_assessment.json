@@ -1,0 +1,679 @@
+{
+  "project_metadata": {
+    "project_name": "predictive_maintenance_demo",
+    "created_date": "2025-10-03",
+    "risk_assessment_framework": "Likelihood (Low/Medium/High) x Impact (Low/Medium/High) = Risk Level (1-9)",
+    "mitigation_priority": "High Risk (7-9) > Medium Risk (4-6) > Low Risk (1-3)"
+  },
+
+  "epoch_002_risks": {
+    "epoch_name": "Data Acquisition and Preparation",
+    "risks": [
+      {
+        "risk_id": "E002-R001",
+        "risk_name": "Kaggle Dataset Download Failures",
+        "description": "Network issues, API authentication failures, or dataset unavailability preventing data acquisition",
+        "likelihood": "Medium",
+        "impact": "High",
+        "risk_score": 6,
+        "risk_level": "Medium",
+        "mitigation_strategies": [
+          "Primary: Use Kaggle API with exponential backoff retry logic (3 retries, 2s/4s/8s delays)",
+          "Fallback 1: Download datasets manually and upload to Domino Data Sources",
+          "Fallback 2: Use pre-downloaded backup datasets stored in Domino shared storage",
+          "Ultimate fallback: Generate fully synthetic data matching NASA Turbofan schema"
+        ],
+        "contingency_plan": "If download fails after 3 retries, switch to manual download process (adds 1 hour)",
+        "owner": "Data-Wrangler-Agent"
+      },
+      {
+        "risk_id": "E002-R002",
+        "risk_name": "Memory Limits Exceeded During Processing",
+        "description": "Data processing operations exceed 12GB RAM limit, causing workspace crashes",
+        "likelihood": "Medium",
+        "impact": "Medium",
+        "risk_score": 4,
+        "risk_level": "Medium",
+        "mitigation_strategies": [
+          "Implement chunked data loading (10,000 rows per chunk) from start",
+          "Use psutil to monitor memory before each operation, abort if >10GB",
+          "Save incremental checkpoints every 10% progress",
+          "Use memory-efficient data types (int16, float32 instead of int64, float64)",
+          "Delete intermediate objects after each processing step"
+        ],
+        "contingency_plan": "If memory limit hit, reduce chunk size to 5,000 rows and re-run from last checkpoint",
+        "owner": "Data-Wrangler-Agent"
+      },
+      {
+        "risk_id": "E002-R003",
+        "risk_name": "Synthetic Image Generation Quality Issues",
+        "description": "Generated synthetic thermal images are unrealistic or unusable for model training",
+        "likelihood": "Low",
+        "impact": "Medium",
+        "risk_score": 2,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "Validate synthetic images against real FLIR images using SSIM and PSNR metrics",
+          "Generate small sample (50 images) first, manual quality review before full generation",
+          "Use real thermal images as reference distribution for synthetic generation",
+          "Document generation parameters (noise levels, gradient ranges) for reproducibility"
+        ],
+        "contingency_plan": "If synthetic quality insufficient, use only real FLIR images (500 samples) and simplify image model in Epoch 005",
+        "owner": "Data-Wrangler-Agent"
+      },
+      {
+        "risk_id": "E002-R004",
+        "risk_name": "Data Quality Below Handoff Thresholds",
+        "description": "Acquired data has >15% missing values or <100 failure events, blocking Epoch 003",
+        "likelihood": "Low",
+        "impact": "High",
+        "risk_score": 3,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "Use NASA Turbofan dataset (known high quality) as primary data source",
+          "Validate data quality immediately after download before any processing",
+          "Document data quality issues in data_profile.html with remediation recommendations",
+          "If AI4I 2020 dataset quality insufficient, use only NASA Turbofan"
+        ],
+        "contingency_plan": "If quality thresholds not met, reject dataset and acquire alternative (adds 2-4 hours)",
+        "owner": "Data-Wrangler-Agent"
+      }
+    ]
+  },
+
+  "epoch_003_risks": {
+    "epoch_name": "Exploratory Data Analysis",
+    "risks": [
+      {
+        "risk_id": "E003-R001",
+        "risk_name": "Insufficient Failure Events for Statistical Power",
+        "description": "Dataset has <100 failure events, making pattern detection and modeling statistically unreliable",
+        "likelihood": "Low",
+        "impact": "High",
+        "risk_score": 3,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "NASA Turbofan dataset has 100+ engine run-to-failure sequences (confirmed in research)",
+          "If failure events insufficient, use data augmentation (SMOTE, time series augmentation)",
+          "Consider relaxing failure definition to include 'degraded' states in addition to complete failures",
+          "Combine multiple datasets (NASA Turbofan + AI4I 2020) to increase failure event count"
+        ],
+        "contingency_plan": "If <100 failures, expand failure definition or acquire additional datasets (adds 4-6 hours)",
+        "owner": "Data-Scientist-Agent"
+      },
+      {
+        "risk_id": "E003-R002",
+        "risk_name": "Multi-Modal Data Temporal Misalignment",
+        "description": "Sensor time series and image timestamps don't align, preventing effective multi-modal analysis",
+        "likelihood": "Medium",
+        "impact": "Medium",
+        "risk_score": 4,
+        "risk_level": "Medium",
+        "mitigation_strategies": [
+          "Implement fuzzy timestamp matching with configurable tolerance window (±1 hour, ±10 minutes, etc.)",
+          "If alignment impossible, treat as two separate data streams with independent analysis",
+          "Create synthetic timestamps for images based on sensor reading intervals",
+          "Document alignment strategy and limitations in EDA notebooks"
+        ],
+        "contingency_plan": "If alignment fails, proceed with sensor-only modeling and images as optional validation (simplifies Epochs 004-005)",
+        "owner": "Data-Scientist-Agent"
+      },
+      {
+        "risk_id": "E003-R003",
+        "risk_name": "No Distinguishable Patterns Between Failure/Non-Failure",
+        "description": "EDA reveals no statistical difference between failure and non-failure cases, indicating unpredictable failures",
+        "likelihood": "Low",
+        "impact": "High",
+        "risk_score": 3,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "NASA Turbofan is validated benchmark dataset with known predictable degradation patterns",
+          "If patterns unclear, try advanced techniques: t-SNE, UMAP for dimensionality reduction and pattern visualization",
+          "Consult domain experts or literature on known failure modes for equipment type",
+          "Focus on longer time horizons (30-day vs 7-day predictions) where patterns may be clearer"
+        ],
+        "contingency_plan": "If truly no patterns, pivot to anomaly detection approach instead of predictive maintenance (major project scope change)",
+        "owner": "Data-Scientist-Agent"
+      },
+      {
+        "risk_id": "E003-R004",
+        "risk_name": "EDA Notebooks Fail to Execute",
+        "description": "Complex analyses cause kernel crashes, infinite loops, or other execution failures",
+        "likelihood": "Low",
+        "impact": "Medium",
+        "risk_score": 2,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "Test notebook cells incrementally on data subsets before full execution",
+          "Set cell execution timeouts (max 10 minutes per cell)",
+          "Implement checkpoint-based notebook execution (save intermediate results)",
+          "Use memory profiling to identify problematic cells before they crash kernel"
+        ],
+        "contingency_plan": "If notebook crashes, refactor into smaller scripts with explicit memory management",
+        "owner": "Data-Scientist-Agent"
+      }
+    ]
+  },
+
+  "epoch_004_risks": {
+    "epoch_name": "Feature Engineering",
+    "risks": [
+      {
+        "risk_id": "E004-R001",
+        "risk_name": "Data Leakage in Temporal Features",
+        "description": "Feature engineering inadvertently uses future data, creating unrealistically high model performance that fails in production",
+        "likelihood": "Medium",
+        "impact": "High",
+        "risk_score": 6,
+        "risk_level": "Medium",
+        "mitigation_strategies": [
+          "Implement strict temporal validation: all features use only data up to current timestamp",
+          "Create unit tests that verify no future data leakage for all feature functions",
+          "Manual code review of all rolling window and aggregation operations",
+          "Use sklearn TimeSeriesSplit for validation to detect leakage",
+          "Document feature calculation logic explicitly in feature_metadata.json"
+        ],
+        "contingency_plan": "If leakage detected in Epoch 006 testing, return to Epoch 004 to re-engineer features (adds 8-12 hours)",
+        "owner": "Data-Scientist-Agent"
+      },
+      {
+        "risk_id": "E004-R002",
+        "risk_name": "CNN Embedding Extraction Failure",
+        "description": "Image embedding generation fails due to GPU unavailability, library incompatibility, or memory issues",
+        "likelihood": "Low",
+        "impact": "Medium",
+        "risk_score": 2,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "Test CNN model loading and embedding extraction on small sample (10 images) before full processing",
+          "Use pre-trained models from tensorflow.keras.applications (ResNet50, EfficientNet) for stability",
+          "Implement batch processing with small batch sizes (32 images per batch) to manage memory",
+          "If GPU unavailable, use CPU with reduced batch size (slower but functional)"
+        ],
+        "contingency_plan": "If CNN embeddings fail, use handcrafted image features (brightness, contrast, edge density) instead (adds 3-4 hours)",
+        "owner": "Data-Scientist-Agent"
+      },
+      {
+        "risk_id": "E004-R003",
+        "risk_name": "Feature Matrix Size Exceeds Storage Limits",
+        "description": "Engineered feature matrix grows beyond 5GB limit due to high dimensionality or large data volume",
+        "likelihood": "Low",
+        "impact": "Medium",
+        "risk_score": 2,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "Use parquet compression (snappy codec) for 5-10x size reduction",
+          "Implement feature selection early: remove low-variance and highly correlated features",
+          "Use sparse matrix representation for one-hot encoded features",
+          "Monitor file sizes incrementally during feature engineering, abort if approaching limit"
+        ],
+        "contingency_plan": "If size limit exceeded, implement aggressive feature selection (keep top 50% by importance) or downsample data",
+        "owner": "Data-Scientist-Agent"
+      },
+      {
+        "risk_id": "E004-R004",
+        "risk_name": "High Multicollinearity Between Features",
+        "description": ">5% of feature pairs have correlation >0.95, causing model instability and poor generalization",
+        "likelihood": "Medium",
+        "impact": "Low",
+        "risk_score": 2,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "Implement automated multicollinearity detection during feature engineering",
+          "Remove highly correlated features (keep one from each correlated pair based on domain knowledge)",
+          "Use regularization in models (L1/L2) to handle remaining multicollinearity",
+          "Document feature correlations in feature_metadata.json for transparency"
+        ],
+        "contingency_plan": "If multicollinearity affects model performance in Epoch 005, apply PCA or feature selection",
+        "owner": "Data-Scientist-Agent"
+      }
+    ]
+  },
+
+  "epoch_005_risks": {
+    "epoch_name": "Model Development and Training",
+    "risks": [
+      {
+        "risk_id": "E005-R001",
+        "risk_name": "GPU Unavailability Delays Training",
+        "description": "GPU compute tier unavailable or quota exceeded, preventing timely model training",
+        "likelihood": "Medium",
+        "impact": "Medium",
+        "risk_score": 4,
+        "risk_level": "Medium",
+        "mitigation_strategies": [
+          "Reserve GPU resources in advance through Domino workspace scheduling",
+          "Implement fallback to CPU-based training for time series models (LightGBM, XGBoost)",
+          "Use smaller image models (MobileNet instead of ResNet) if CPU-only",
+          "Reduce hyperparameter search space to minimize training time"
+        ],
+        "contingency_plan": "If GPU unavailable, train sensor-only models on CPU (acceptable performance, adds 8-10 hours)",
+        "owner": "Model-Developer-Agent"
+      },
+      {
+        "risk_id": "E005-R002",
+        "risk_name": "Model Performance Below Target Metrics",
+        "description": "Baseline models fail to achieve AUC ≥0.75, Recall ≥0.80, blocking progression to Epoch 006",
+        "likelihood": "Low",
+        "impact": "High",
+        "risk_score": 3,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "NASA Turbofan is well-studied dataset with known achievable performance (AUC >0.85 in literature)",
+          "If performance low, revisit feature engineering (return to Epoch 004 for additional features)",
+          "Try ensemble methods (stacking, voting) to boost performance",
+          "Consult research papers on NASA Turbofan modeling for architectural insights",
+          "Consider class weighting or oversampling to handle class imbalance"
+        ],
+        "contingency_plan": "If metrics not met, iterate between Epoch 004 (features) and Epoch 005 (models) until targets achieved",
+        "owner": "Model-Developer-Agent"
+      },
+      {
+        "risk_id": "E005-R003",
+        "risk_name": "Severe Overfitting (Train-Test Gap >0.10 AUC)",
+        "description": "Models achieve high training performance but poor test performance, indicating overfitting",
+        "likelihood": "Medium",
+        "impact": "Medium",
+        "risk_score": 4,
+        "risk_level": "Medium",
+        "mitigation_strategies": [
+          "Implement strong regularization (L1/L2 penalties, dropout for neural networks)",
+          "Use cross-validation throughout training to detect overfitting early",
+          "Reduce model complexity (fewer trees, smaller networks, fewer features)",
+          "Apply early stopping based on validation performance",
+          "Increase training data if possible (data augmentation for time series)"
+        ],
+        "contingency_plan": "If overfitting persists, simplify model architecture and apply aggressive regularization",
+        "owner": "Model-Developer-Agent"
+      },
+      {
+        "risk_id": "E005-R004",
+        "risk_name": "Multi-Modal Fusion Provides No Improvement",
+        "description": "Combined sensor+image model performs no better than sensor-only model, questioning image data value",
+        "likelihood": "Low",
+        "impact": "Low",
+        "risk_score": 1,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "Test sensor-only and image-only models separately to understand individual contributions",
+          "If images add no value, proceed with sensor-only model (simplifies deployment)",
+          "Document findings for future reference (images may be valuable for specific failure modes)",
+          "Consider images as auxiliary validation data rather than predictive features"
+        ],
+        "contingency_plan": "If images don't improve performance, remove image component and simplify to sensor-only model",
+        "owner": "Model-Developer-Agent"
+      },
+      {
+        "risk_id": "E005-R005",
+        "risk_name": "Hyperparameter Tuning Runs Out of Time",
+        "description": "Extensive hyperparameter search space requires more time than allocated 12 hours",
+        "likelihood": "Low",
+        "impact": "Low",
+        "risk_score": 1,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "Use Bayesian optimization (Optuna) instead of grid search for efficiency",
+          "Set maximum number of trials (50-100) and time budget per trial",
+          "Focus hyperparameter tuning on top 2 models only (skip poor baseline performers)",
+          "Use early stopping in optimization if improvement plateaus"
+        ],
+        "contingency_plan": "If time runs out, use best parameters found so far (may be suboptimal but acceptable)",
+        "owner": "Model-Developer-Agent"
+      }
+    ]
+  },
+
+  "epoch_006_risks": {
+    "epoch_name": "Comprehensive Model Testing and Validation",
+    "risks": [
+      {
+        "risk_id": "E006-R001",
+        "risk_name": "Model Fails Mandatory Pass Criteria",
+        "description": "Model fails one or more mandatory criteria (Recall <0.95, Latency >100ms, etc.), blocking deployment",
+        "likelihood": "Medium",
+        "impact": "High",
+        "risk_score": 6,
+        "risk_level": "Medium",
+        "mitigation_strategies": [
+          "Set realistic but achievable targets based on NASA Turbofan benchmark performance",
+          "If Recall <0.95, adjust decision threshold (trade precision for recall)",
+          "If latency >100ms, optimize model (quantization, pruning, simpler architecture)",
+          "If edge case robustness <70%, implement ensemble with robust fallback models",
+          "Document all failures with root cause analysis for return to Epoch 005"
+        ],
+        "contingency_plan": "If mandatory criteria failed, return to Epoch 005 for model improvements (adds 8-16 hours)",
+        "owner": "Model-Tester-Agent"
+      },
+      {
+        "risk_id": "E006-R002",
+        "risk_name": "Edge Case Testing Uncovers Critical Model Weaknesses",
+        "description": "Model fails catastrophically on sensor drift, missing data, or novel failure patterns",
+        "likelihood": "Medium",
+        "impact": "Medium",
+        "risk_score": 4,
+        "risk_level": "Medium",
+        "mitigation_strategies": [
+          "Design comprehensive edge case suite based on Data Wrangler and MLOps Engineer consultations",
+          "Implement graceful degradation for edge cases (return conservative predictions when uncertain)",
+          "Add model uncertainty quantification (prediction confidence scores)",
+          "Document known limitations clearly for user awareness in production",
+          "Consider ensemble with diverse models to improve robustness"
+        ],
+        "contingency_plan": "If critical weaknesses found, add edge case handling logic or retrain with augmented edge case data",
+        "owner": "Model-Tester-Agent"
+      },
+      {
+        "risk_id": "E006-R003",
+        "risk_name": "Cross-Industry Transferability Below 70% Threshold",
+        "description": "Model trained on manufacturing data performs poorly on military/oil & gas/logistics domains",
+        "likelihood": "Medium",
+        "impact": "Medium",
+        "risk_score": 4,
+        "risk_level": "Medium",
+        "mitigation_strategies": [
+          "If transferability low, implement domain adaptation techniques (fine-tuning, transfer learning)",
+          "Create industry-specific adapter layers rather than fully retraining models",
+          "Document transferability limitations and recommend 10-20% industry-specific data for adaptation",
+          "Focus on domain-agnostic features (time-based, statistical patterns) over domain-specific ones"
+        ],
+        "contingency_plan": "If transferability <70%, adjust project scope to single-industry (manufacturing) with future expansion plan",
+        "owner": "Model-Tester-Agent"
+      },
+      {
+        "risk_id": "E006-R004",
+        "risk_name": "Testing Timeline Exceeds 40 Hours Estimate",
+        "description": "Comprehensive testing takes longer than anticipated due to test complexity or failures requiring re-testing",
+        "likelihood": "Low",
+        "impact": "Low",
+        "risk_score": 1,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "Prioritize mandatory pass criteria tests first (can fail fast if not met)",
+          "Parallelize independent test suites (functional, performance, edge cases)",
+          "Use automated test frameworks to reduce manual effort",
+          "Set time caps per test category (functional: 6h, performance: 8h, edge cases: 16h)"
+        ],
+        "contingency_plan": "If timeline exceeded, focus on critical tests and defer nice-to-have tests to post-deployment",
+        "owner": "Model-Tester-Agent"
+      }
+    ]
+  },
+
+  "epoch_007_risks": {
+    "epoch_name": "Deployment and Streamlit Application Development",
+    "risks": [
+      {
+        "risk_id": "E007-R001",
+        "risk_name": "Domino LLM Gateway Integration Failures",
+        "description": "LLM Gateway API authentication fails, rate limits exceeded, or ChatGPT unavailable",
+        "likelihood": "Low",
+        "impact": "Medium",
+        "risk_score": 2,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "Test LLM Gateway connection early (day 1 of Epoch 007) before full integration",
+          "Implement graceful degradation: use pre-defined insight templates if LLM unavailable",
+          "Cache LLM responses to reduce API calls and improve latency",
+          "Set up retry logic with exponential backoff for transient failures",
+          "Monitor LLM API costs to avoid unexpected budget overruns"
+        ],
+        "contingency_plan": "If LLM unavailable, use rule-based insights generation with templated recommendations",
+        "owner": "MLOps-Engineer-Agent"
+      },
+      {
+        "risk_id": "E007-R002",
+        "risk_name": "Real-Time Operations Dashboard Latency >200ms",
+        "description": "Alert generation and UI updates exceed latency targets, degrading user experience",
+        "likelihood": "Medium",
+        "impact": "Medium",
+        "risk_score": 4,
+        "risk_level": "Medium",
+        "mitigation_strategies": [
+          "Implement aggressive caching (Redis or in-memory) for equipment metadata and features",
+          "Use Streamlit @st.cache_data decorator for static lookups",
+          "Batch predictions for multiple assets in single API call",
+          "Pre-compute predictions on schedule (every 5 minutes) rather than on-demand",
+          "Optimize Model API with model quantization or distillation if needed"
+        ],
+        "contingency_plan": "If latency targets not met, increase refresh interval from 60s to 120s and implement asynchronous updates",
+        "owner": "MLOps-Engineer-Agent"
+      },
+      {
+        "risk_id": "E007-R003",
+        "risk_name": "Model API Deployment Failures",
+        "description": "Domino Model API deployment fails due to dependency conflicts, resource constraints, or configuration errors",
+        "likelihood": "Low",
+        "impact": "High",
+        "risk_score": 3,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "Test model loading and inference in development environment before deploying API",
+          "Use Domino's standard compute environment images to minimize dependency conflicts",
+          "Create explicit requirements.txt with pinned versions for reproducibility",
+          "Test API with sample payloads before integrating with Streamlit app",
+          "Document deployment steps in deployment_guide.md for reproducibility"
+        ],
+        "contingency_plan": "If deployment fails, troubleshoot using Domino API logs and retry with simplified model or environment",
+        "owner": "MLOps-Engineer-Agent"
+      },
+      {
+        "risk_id": "E007-R004",
+        "risk_name": "Streamlit App Crashes Under Load",
+        "description": "100-user load test causes app crashes, timeouts, or unacceptable performance degradation",
+        "likelihood": "Low",
+        "impact": "Medium",
+        "risk_score": 2,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "Implement session state management properly to prevent memory leaks",
+          "Use connection pooling for database/API connections",
+          "Set Streamlit max concurrent users limit to prevent overload",
+          "Test incrementally: 10 users → 50 users → 100 users",
+          "Monitor resource usage during load testing to identify bottlenecks"
+        ],
+        "contingency_plan": "If crashes occur, reduce concurrent user limit or upgrade Streamlit app compute tier",
+        "owner": "MLOps-Engineer-Agent"
+      },
+      {
+        "risk_id": "E007-R005",
+        "risk_name": "Monitoring Dashboard Drift Detection False Positives",
+        "description": "Drift monitoring triggers excessive false alarms, causing alert fatigue and ignored warnings",
+        "likelihood": "Medium",
+        "impact": "Low",
+        "risk_score": 2,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "Tune drift detection thresholds based on baseline data variability",
+          "Implement sliding window drift detection (compare to recent baseline, not original training data)",
+          "Use multiple drift metrics and require multiple triggers before alerting",
+          "Add manual override to suppress non-critical drift alerts",
+          "Document expected drift patterns (seasonality, operational changes) to filter false positives"
+        ],
+        "contingency_plan": "If false positives excessive, increase alert threshold or add human-in-the-loop confirmation before alerting",
+        "owner": "MLOps-Engineer-Agent"
+      }
+    ]
+  },
+
+  "epoch_008_risks": {
+    "epoch_name": "Comprehensive ML Lifecycle Retrospective",
+    "risks": [
+      {
+        "risk_id": "E008-R001",
+        "risk_name": "Incomplete Data for Retrospective Analysis",
+        "description": "MLflow tracking data, pipeline logs, or approval records incomplete, preventing accurate retrospective",
+        "likelihood": "Low",
+        "impact": "Low",
+        "risk_score": 1,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "Ensure comprehensive logging throughout all epochs (002-007)",
+          "Store all artifacts, logs, and state to /mnt/code/.context/ incrementally",
+          "Validate pipeline_state.json, approval_log.json, error_log.json exist before Epoch 008",
+          "If data missing, reconstruct from git history, MLflow runs, and manual notes"
+        ],
+        "contingency_plan": "If data incomplete, conduct qualitative retrospective based on available information",
+        "owner": "All-Agents-Collaborative"
+      },
+      {
+        "risk_id": "E008-R002",
+        "risk_name": "Agent Reports Lack Actionable Insights",
+        "description": "Retrospective reports are too high-level or lack specific recommendations for improvement",
+        "likelihood": "Low",
+        "impact": "Low",
+        "risk_score": 1,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "Provide clear template for agent reports: Successes, Challenges, Root Causes, Specific Recommendations",
+          "Focus on actionable improvements rather than general observations",
+          "Include quantitative metrics where possible (time saved, cost reduced, performance improved)",
+          "Prioritize recommendations by impact and feasibility"
+        ],
+        "contingency_plan": "If reports lack depth, conduct follow-up analysis with specific focus areas",
+        "owner": "All-Agents-Collaborative"
+      }
+    ]
+  },
+
+  "cross_epoch_risks": {
+    "risks": [
+      {
+        "risk_id": "CROSS-R001",
+        "risk_name": "Cumulative Timeline Delays Exceed 20% Buffer",
+        "description": "Individual epoch delays accumulate, causing total project timeline to exceed 25 business days (22 + buffer)",
+        "likelihood": "Medium",
+        "impact": "Medium",
+        "risk_score": 4,
+        "risk_level": "Medium",
+        "mitigation_strategies": [
+          "Track actual vs estimated time after each epoch, identify patterns early",
+          "If >10% delay detected by Epoch 004, implement corrective actions (scope reduction, resource increase)",
+          "Prioritize critical path activities (model training, testing) over nice-to-haves (extensive visualizations)",
+          "Use checkpoint-based execution to enable pausing/resuming without rework",
+          "Build in explicit buffer days between epochs for unexpected issues"
+        ],
+        "contingency_plan": "If timeline at risk, reduce scope (e.g., skip multi-industry validation, simplify app to 2 tabs)",
+        "owner": "Business-Analyst-Agent"
+      },
+      {
+        "risk_id": "CROSS-R002",
+        "risk_name": "Iterative Loops Between Epochs",
+        "description": "Quality gates fail, requiring return to previous epochs (e.g., Epoch 006 → Epoch 005 → Epoch 006)",
+        "likelihood": "Medium",
+        "impact": "High",
+        "risk_score": 6,
+        "risk_level": "Medium",
+        "mitigation_strategies": [
+          "Set realistic quality gate thresholds based on agent consultations and literature benchmarks",
+          "Implement progressive validation within epochs to catch issues early",
+          "Use checkpoints to enable fast iteration without full epoch re-execution",
+          "Document common failure modes and pre-emptive checks in each epoch",
+          "Budget 1 iteration loop in timeline (already included in 20% buffer)"
+        ],
+        "contingency_plan": "If >1 iteration loop required, assess root cause and potentially relax quality gates or extend timeline",
+        "owner": "Business-Analyst-Agent"
+      },
+      {
+        "risk_id": "CROSS-R003",
+        "risk_name": "Resource Budget Overrun",
+        "description": "Actual compute/storage/LLM costs exceed budgeted $6,112 + contingency",
+        "likelihood": "Low",
+        "impact": "Medium",
+        "risk_score": 2,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "Track costs incrementally after each epoch using ResourceTracker class",
+          "Set up cost alerts in Domino at 50%, 75%, 90% of budget",
+          "Use spot/preemptible instances where possible for non-critical workloads",
+          "Optimize resource usage (turn off idle workspaces, use CPU instead of GPU when feasible)",
+          "If approaching budget limit, implement cost reduction strategies from resource_estimates.json"
+        ],
+        "contingency_plan": "If budget exceeded, switch to minimal budget scenario (CPU-only, reduced replicas, limited LLM usage)",
+        "owner": "Business-Analyst-Agent"
+      },
+      {
+        "risk_id": "CROSS-R004",
+        "risk_name": "Knowledge Loss Between Epochs",
+        "description": "Critical information from earlier epochs lost or not accessible to later epochs, causing rework",
+        "likelihood": "Low",
+        "impact": "Medium",
+        "risk_score": 2,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "Use /mnt/code/.context/pipeline_state.json as single source of truth for cross-epoch communication",
+          "Document all key decisions, findings, and metadata in standardized JSON files",
+          "Extract reusable code to /mnt/code/src/ after each epoch with clear documentation",
+          "Maintain data lineage tracking throughout all epochs",
+          "Create README files in each epoch directory summarizing key outputs"
+        ],
+        "contingency_plan": "If information lost, reconstruct from MLflow tracking, git history, and artifact metadata",
+        "owner": "All agents"
+      },
+      {
+        "risk_id": "CROSS-R005",
+        "risk_name": "Scope Creep: Multi-Industry Expansion Premature",
+        "description": "Attempting to support all 4 industries simultaneously increases complexity and risk beyond manageable levels",
+        "likelihood": "Low",
+        "impact": "Medium",
+        "risk_score": 2,
+        "risk_level": "Low",
+        "mitigation_strategies": [
+          "Focus on manufacturing (primary industry) first, ensure full success before expansion",
+          "Design for multi-industry reusability from start, but validate only on manufacturing in Epochs 002-007",
+          "Plan multi-industry validation as post-deployment activity (after Epoch 008)",
+          "Document industry adaptation strategy in Epoch 001 for future reference",
+          "Resist pressure to add industry-specific features during initial development"
+        ],
+        "contingency_plan": "If multi-industry complexity becomes blocker, formally descope to manufacturing-only with future expansion plan",
+        "owner": "Business-Analyst-Agent"
+      }
+    ]
+  },
+
+  "risk_summary": {
+    "total_risks_identified": 29,
+    "risk_level_distribution": {
+      "high_risk_7_9": 0,
+      "medium_risk_4_6": 10,
+      "low_risk_1_3": 19
+    },
+    "top_5_risks_by_score": [
+      {
+        "rank": 1,
+        "risk_id": "E002-R001",
+        "risk_name": "Kaggle Dataset Download Failures",
+        "risk_score": 6,
+        "priority": "High"
+      },
+      {
+        "rank": 2,
+        "risk_id": "E004-R001",
+        "risk_name": "Data Leakage in Temporal Features",
+        "risk_score": 6,
+        "priority": "High"
+      },
+      {
+        "rank": 3,
+        "risk_id": "E006-R001",
+        "risk_name": "Model Fails Mandatory Pass Criteria",
+        "risk_score": 6,
+        "priority": "High"
+      },
+      {
+        "rank": 4,
+        "risk_id": "CROSS-R002",
+        "risk_name": "Iterative Loops Between Epochs",
+        "risk_score": 6,
+        "priority": "High"
+      },
+      {
+        "rank": 5,
+        "risk_id": "E002-R002",
+        "risk_name": "Memory Limits Exceeded During Processing",
+        "risk_score": 4,
+        "priority": "Medium"
+      }
+    ],
+    "risk_mitigation_readiness": "All identified risks have documented mitigation strategies and contingency plans. Project risk level: MEDIUM (manageable with active monitoring)"
+  }
+}

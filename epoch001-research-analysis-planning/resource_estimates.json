@@ -1,0 +1,468 @@
+{
+  "project_metadata": {
+    "project_name": "predictive_maintenance_demo",
+    "created_date": "2025-10-03",
+    "currency": "USD",
+    "cost_assumptions": {
+      "compute_hourly_rates": {
+        "standard_tier": 2.00,
+        "medium_tier": 4.00,
+        "gpu_small_tier": 8.00,
+        "gpu_medium_tier": 12.00
+      },
+      "storage_monthly_rate_per_gb": 0.10,
+      "llm_api_cost_per_1k_tokens": 0.03,
+      "human_hourly_rate": 75.00
+    }
+  },
+
+  "epoch_002_resources": {
+    "epoch_name": "Data Acquisition and Preparation",
+    "time_estimates": {
+      "optimistic_hours": 4,
+      "realistic_hours": 6,
+      "pessimistic_hours": 8,
+      "business_days_realistic": 1
+    },
+    "compute_resources": {
+      "tier": "Standard (2 CPU, 8GB RAM)",
+      "expected_usage_hours": 6,
+      "cost_estimate": 12.00
+    },
+    "storage_resources": {
+      "temporary_storage_gb": 0.1,
+      "permanent_storage_gb": 0.04,
+      "monthly_cost_estimate": 0.01
+    },
+    "network_bandwidth": {
+      "download_mb": 150,
+      "cost_estimate": 0.00
+    },
+    "human_effort": {
+      "monitoring_hours": 1,
+      "review_hours": 0.5,
+      "total_human_hours": 1.5,
+      "cost_estimate": 112.50
+    },
+    "total_epoch_cost": {
+      "compute": 12.00,
+      "storage": 0.01,
+      "human_effort": 112.50,
+      "total": 124.51
+    }
+  },
+
+  "epoch_003_resources": {
+    "epoch_name": "Exploratory Data Analysis",
+    "time_estimates": {
+      "optimistic_hours": 16,
+      "realistic_hours": 20,
+      "pessimistic_hours": 24,
+      "business_days_realistic": 2.5
+    },
+    "compute_resources": {
+      "tier": "Standard (4 CPU, 16GB RAM)",
+      "expected_usage_hours": 20,
+      "cost_estimate": 40.00
+    },
+    "storage_resources": {
+      "temporary_storage_gb": 10,
+      "permanent_storage_gb": 0.5,
+      "monthly_cost_estimate": 0.05
+    },
+    "human_effort": {
+      "analysis_hours": 3,
+      "review_hours": 2,
+      "total_human_hours": 5,
+      "cost_estimate": 375.00,
+      "note": "Includes mandatory human review gate"
+    },
+    "total_epoch_cost": {
+      "compute": 40.00,
+      "storage": 0.05,
+      "human_effort": 375.00,
+      "total": 415.05
+    }
+  },
+
+  "epoch_004_resources": {
+    "epoch_name": "Feature Engineering",
+    "time_estimates": {
+      "optimistic_hours": 20,
+      "realistic_hours": 24,
+      "pessimistic_hours": 28,
+      "business_days_realistic": 3
+    },
+    "compute_resources": {
+      "tier": "GPU-Small (recommended for CNN embeddings)",
+      "expected_usage_hours": 24,
+      "cost_estimate": 192.00,
+      "fallback_cpu_tier": "Standard (slower, 10x longer for images)",
+      "fallback_cost_estimate": 96.00
+    },
+    "storage_resources": {
+      "temporary_storage_gb": 5,
+      "permanent_storage_gb": 3,
+      "monthly_cost_estimate": 0.30
+    },
+    "human_effort": {
+      "feature_design_hours": 4,
+      "review_hours": 2,
+      "total_human_hours": 6,
+      "cost_estimate": 450.00,
+      "note": "Includes mandatory human review gate"
+    },
+    "total_epoch_cost": {
+      "compute": 192.00,
+      "storage": 0.30,
+      "human_effort": 450.00,
+      "total": 642.30
+    }
+  },
+
+  "epoch_005_resources": {
+    "epoch_name": "Model Development and Training",
+    "time_estimates": {
+      "optimistic_hours": 12,
+      "realistic_hours": 16,
+      "pessimistic_hours": 20,
+      "business_days_realistic": 2
+    },
+    "compute_resources": {
+      "tier": "GPU-Medium (1x NVIDIA T4, 16GB VRAM)",
+      "phase_1_baseline_hours": 5,
+      "phase_2_tuning_hours": 12,
+      "total_expected_usage_hours": 17,
+      "cost_estimate": 204.00
+    },
+    "storage_resources": {
+      "temporary_storage_gb": 2,
+      "permanent_storage_gb": 1,
+      "mlflow_artifacts_gb": 1,
+      "monthly_cost_estimate": 0.20
+    },
+    "human_effort": {
+      "model_architecture_design_hours": 3,
+      "hyperparameter_tuning_oversight_hours": 2,
+      "review_hours": 1,
+      "total_human_hours": 6,
+      "cost_estimate": 450.00
+    },
+    "total_epoch_cost": {
+      "compute": 204.00,
+      "storage": 0.20,
+      "human_effort": 450.00,
+      "total": 654.20
+    }
+  },
+
+  "epoch_006_resources": {
+    "epoch_name": "Comprehensive Model Testing and Validation",
+    "time_estimates": {
+      "optimistic_hours": 34,
+      "realistic_hours": 40,
+      "pessimistic_hours": 47,
+      "business_days_realistic": 5
+    },
+    "compute_resources": {
+      "tier": "Medium (8 CPU, 32GB RAM) + GPU optional for image edge cases",
+      "cpu_testing_hours": 35,
+      "gpu_testing_hours": 5,
+      "cost_estimate_cpu": 140.00,
+      "cost_estimate_gpu": 40.00,
+      "total_cost_estimate": 180.00
+    },
+    "storage_resources": {
+      "test_datasets_gb": 50,
+      "artifacts_gb": 1,
+      "monthly_cost_estimate": 5.10
+    },
+    "human_effort": {
+      "test_design_hours": 4,
+      "edge_case_analysis_hours": 6,
+      "compliance_review_hours": 4,
+      "final_review_hours": 3,
+      "total_human_hours": 17,
+      "cost_estimate": 1275.00,
+      "note": "Includes mandatory human review gate and extensive compliance validation"
+    },
+    "total_epoch_cost": {
+      "compute": 180.00,
+      "storage": 5.10,
+      "human_effort": 1275.00,
+      "total": 1460.10
+    }
+  },
+
+  "epoch_007_resources": {
+    "epoch_name": "Deployment and Streamlit Application Development",
+    "time_estimates": {
+      "optimistic_hours": 17,
+      "realistic_hours": 21,
+      "pessimistic_hours": 24,
+      "business_days_realistic": 3
+    },
+    "compute_resources": {
+      "development_tier": "Medium",
+      "development_hours": 21,
+      "model_api_tier": "Medium (2 replicas min, 5 max)",
+      "model_api_monthly_cost": 240.00,
+      "streamlit_app_tier": "Standard",
+      "streamlit_app_monthly_cost": 60.00,
+      "deployment_cost_estimate": 84.00,
+      "monthly_production_cost_estimate": 300.00
+    },
+    "storage_resources": {
+      "app_artifacts_gb": 0.1,
+      "monthly_cost_estimate": 0.01
+    },
+    "llm_api_costs": {
+      "average_tokens_per_report": 1500,
+      "estimated_reports_per_month": 200,
+      "cost_per_report": 0.045,
+      "monthly_cost_estimate": 9.00
+    },
+    "human_effort": {
+      "app_development_hours": 8,
+      "llm_integration_hours": 2,
+      "monitoring_setup_hours": 3,
+      "testing_hours": 3,
+      "documentation_hours": 2,
+      "final_review_hours": 2,
+      "total_human_hours": 20,
+      "cost_estimate": 1500.00,
+      "note": "Includes mandatory human review gate for production deployment"
+    },
+    "total_epoch_cost": {
+      "compute_one_time": 84.00,
+      "compute_monthly_recurring": 300.00,
+      "storage_monthly": 0.01,
+      "llm_api_monthly": 9.00,
+      "human_effort_one_time": 1500.00,
+      "total_one_time": 1584.00,
+      "total_monthly_recurring": 309.01
+    }
+  },
+
+  "epoch_008_resources": {
+    "epoch_name": "Comprehensive ML Lifecycle Retrospective",
+    "time_estimates": {
+      "optimistic_hours": 12,
+      "realistic_hours": 16,
+      "pessimistic_hours": 20,
+      "business_days_realistic": 2
+    },
+    "compute_resources": {
+      "tier": "Standard (2 CPU, 8GB RAM)",
+      "expected_usage_hours": 16,
+      "cost_estimate": 32.00
+    },
+    "storage_resources": {
+      "reports_visualizations_gb": 0.1,
+      "monthly_cost_estimate": 0.01
+    },
+    "human_effort": {
+      "retrospective_analysis_hours": 8,
+      "playbook_creation_hours": 4,
+      "recommendations_hours": 3,
+      "review_hours": 1,
+      "total_human_hours": 16,
+      "cost_estimate": 1200.00
+    },
+    "total_epoch_cost": {
+      "compute": 32.00,
+      "storage": 0.01,
+      "human_effort": 1200.00,
+      "total": 1232.01
+    }
+  },
+
+  "project_totals": {
+    "time_summary": {
+      "total_compute_hours_realistic": 143,
+      "total_business_days_realistic": 18,
+      "contingency_buffer_20_percent": 29,
+      "total_with_buffer_hours": 172,
+      "total_with_buffer_business_days": 22
+    },
+    "cost_summary_one_time": {
+      "epoch_002": 124.51,
+      "epoch_003": 415.05,
+      "epoch_004": 642.30,
+      "epoch_005": 654.20,
+      "epoch_006": 1460.10,
+      "epoch_007": 1584.00,
+      "epoch_008": 1232.01,
+      "total_one_time_cost": 6112.17
+    },
+    "cost_summary_recurring_monthly": {
+      "model_api_hosting": 240.00,
+      "streamlit_app_hosting": 60.00,
+      "llm_api_calls": 9.00,
+      "storage": 5.68,
+      "total_monthly_recurring": 314.68
+    },
+    "cost_breakdown_by_category": {
+      "compute_one_time": 744.00,
+      "storage_one_time": 5.68,
+      "human_effort": 5362.50,
+      "total_one_time": 6112.18,
+      "compute_monthly_recurring": 300.00,
+      "llm_api_monthly_recurring": 9.00,
+      "storage_monthly_recurring": 5.68,
+      "total_monthly_recurring": 314.68
+    },
+    "roi_analysis": {
+      "assumptions": {
+        "prevented_failures_per_month": 5,
+        "cost_per_unplanned_failure": 10000,
+        "false_alarms_per_month": 20,
+        "cost_per_unnecessary_inspection": 200,
+        "baseline_reactive_maintenance_cost_per_month": 60000
+      },
+      "calculations": {
+        "prevented_failure_savings_per_month": 50000,
+        "false_alarm_cost_per_month": 4000,
+        "net_savings_per_month": 46000,
+        "system_operating_cost_per_month": 314.68,
+        "total_net_benefit_per_month": 45685.32,
+        "payback_period_months": 0.13,
+        "annual_net_benefit": 548223.84
+      },
+      "note": "ROI calculations are illustrative and depend heavily on actual failure rates and business costs"
+    }
+  },
+
+  "resource_optimization_recommendations": {
+    "cost_reduction_opportunities": [
+      {
+        "opportunity": "Use CPU instead of GPU for feature engineering",
+        "potential_savings": 96.00,
+        "tradeoff": "10x longer processing time for image embeddings"
+      },
+      {
+        "opportunity": "Reduce Model API replicas from 2 min to 1",
+        "potential_monthly_savings": 120.00,
+        "tradeoff": "Reduced high availability, higher cold start risk"
+      },
+      {
+        "opportunity": "Limit LLM-generated reports to critical assets only",
+        "potential_monthly_savings": 4.50,
+        "tradeoff": "Reduced insights coverage"
+      },
+      {
+        "opportunity": "Use spot/preemptible instances for training",
+        "potential_savings": 100.00,
+        "tradeoff": "Possible training interruptions, need checkpoint recovery"
+      }
+    ],
+    "performance_optimization_opportunities": [
+      {
+        "opportunity": "Use GPU for model training (already planned)",
+        "time_savings_hours": 8,
+        "additional_cost": 108.00
+      },
+      {
+        "opportunity": "Parallelize edge case testing",
+        "time_savings_hours": 12,
+        "additional_cost": 48.00
+      },
+      {
+        "opportunity": "Pre-generate synthetic images in Epoch 002",
+        "time_savings_hours": 2,
+        "additional_cost": 4.00
+      }
+    ]
+  },
+
+  "contingency_planning": {
+    "budget_scenarios": {
+      "minimal_budget": {
+        "description": "CPU-only, single model API replica, minimal LLM usage",
+        "total_one_time_cost": 5916.17,
+        "total_monthly_recurring": 185.18,
+        "limitations": [
+          "Longer training times (20-30% increase)",
+          "Lower availability for Model API",
+          "Limited LLM insights generation"
+        ]
+      },
+      "recommended_budget": {
+        "description": "Balanced GPU usage, 2 API replicas, moderate LLM usage",
+        "total_one_time_cost": 6112.17,
+        "total_monthly_recurring": 314.68,
+        "benefits": [
+          "Optimal training speed",
+          "High availability",
+          "Comprehensive insights coverage"
+        ]
+      },
+      "premium_budget": {
+        "description": "Enhanced testing, 5 API replicas, unlimited LLM usage",
+        "total_one_time_cost": 6612.17,
+        "total_monthly_recurring": 464.68,
+        "benefits": [
+          "Maximum performance",
+          "Maximum availability",
+          "Full insights coverage for all assets"
+        ]
+      }
+    },
+    "resource_allocation_priorities": [
+      {
+        "priority": 1,
+        "resource": "GPU for model training (Epoch 005)",
+        "justification": "Critical for timely delivery and multi-modal architecture"
+      },
+      {
+        "priority": 2,
+        "resource": "Comprehensive testing compute (Epoch 006)",
+        "justification": "Ensures production readiness and reduces deployment risks"
+      },
+      {
+        "priority": 3,
+        "resource": "Model API high availability (Epoch 007)",
+        "justification": "Required for real-time Operations dashboard"
+      },
+      {
+        "priority": 4,
+        "resource": "GPU for feature engineering (Epoch 004)",
+        "justification": "Nice-to-have for speed, but can use CPU with longer timeline"
+      },
+      {
+        "priority": 5,
+        "resource": "LLM API for insights generation (Epoch 007)",
+        "justification": "Value-add feature, but not core to predictive maintenance functionality"
+      }
+    ]
+  },
+
+  "risk_adjusted_estimates": {
+    "note": "Includes probability-weighted scenarios based on risk assessment",
+    "optimistic_scenario_10_percent": {
+      "total_hours": 130,
+      "total_cost": 5500.00,
+      "probability": 0.1
+    },
+    "realistic_scenario_60_percent": {
+      "total_hours": 172,
+      "total_cost": 6112.17,
+      "probability": 0.6
+    },
+    "pessimistic_scenario_30_percent": {
+      "total_hours": 220,
+      "total_cost": 7200.00,
+      "probability": 0.3
+    },
+    "expected_value": {
+      "total_hours": 179,
+      "total_cost": 6347.22,
+      "confidence_interval_80_percent": {
+        "hours_min": 160,
+        "hours_max": 210,
+        "cost_min": 5900.00,
+        "cost_max": 6900.00
+      }
+    }
+  }
+}

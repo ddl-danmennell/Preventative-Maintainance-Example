@@ -1,0 +1,620 @@
+{
+  "project_metadata": {
+    "project_name": "predictive_maintenance_demo",
+    "created_date": "2025-10-03",
+    "purpose": "Definition of done criteria for each epoch to ensure quality gates are met before proceeding"
+  },
+
+  "epoch_002_success_criteria": {
+    "epoch_name": "Data Acquisition and Preparation",
+    "definition_of_done": {
+      "data_quality": {
+        "sensor_completeness": {
+          "metric": "Percentage of non-null values per sensor",
+          "target": "> 85%",
+          "validation_method": "pandas.DataFrame.isna().sum() per column"
+        },
+        "time_series_gaps": {
+          "metric": "Percentage of time periods with missing data",
+          "target": "< 5%",
+          "validation_method": "Detect timestamp gaps > 2x expected sampling interval"
+        },
+        "image_dataset_size": {
+          "metric": "Total number of images acquired",
+          "target": "> 1000 samples",
+          "validation_method": "Count files in thermal_images_sample/ directory"
+        },
+        "image_quality": {
+          "metric": "Percentage of corrupted/unreadable images",
+          "target": "< 10%",
+          "validation_method": "Try loading each image with PIL/opencv"
+        },
+        "timestamp_alignment": {
+          "metric": "Percentage of sensor-image timestamp misalignment",
+          "target": "< 1%",
+          "validation_method": "Check timestamp differences between sensor readings and images"
+        }
+      },
+      "resource_compliance": {
+        "file_size_limit": {
+          "metric": "Maximum file size in dataset",
+          "target": "< 50MB per file",
+          "validation_method": "os.path.getsize() check on all data files"
+        },
+        "total_data_footprint": {
+          "metric": "Total size of Epoch 002 deliverables",
+          "target": "< 50MB compressed",
+          "validation_method": "Sum of all parquet + image files"
+        },
+        "memory_usage_during_processing": {
+          "metric": "Peak RAM usage during data generation",
+          "target": "< 12GB",
+          "validation_method": "psutil.Process().memory_info().rss monitoring"
+        }
+      },
+      "documentation": {
+        "data_dictionary": {
+          "metric": "Data dictionary JSON file exists with all columns documented",
+          "target": "100% of columns documented",
+          "validation_method": "Verify data_dictionary.json has entry for each column"
+        },
+        "data_profile_report": {
+          "metric": "HTML profiling report generated",
+          "target": "File exists and valid HTML",
+          "validation_method": "Check data_profile.html exists and opens in browser"
+        }
+      },
+      "mlflow_tracking": {
+        "experiment_logged": {
+          "metric": "MLflow experiment created for data processing",
+          "target": "Experiment 'predictive_maintenance_demo_data' exists",
+          "validation_method": "mlflow.get_experiment_by_name() returns valid experiment"
+        },
+        "dataset_registered": {
+          "metric": "Dataset artifacts logged to MLflow",
+          "target": "All parquet files logged as artifacts",
+          "validation_method": "Check MLflow run has artifacts logged"
+        }
+      }
+    },
+    "human_review_gate": "Not required for Epoch 002 → 003 transition (automated validation only)"
+  },
+
+  "epoch_003_success_criteria": {
+    "epoch_name": "Exploratory Data Analysis",
+    "definition_of_done": {
+      "statistical_power": {
+        "failure_event_count": {
+          "metric": "Total number of failure events in dataset",
+          "target": "> 100 events",
+          "validation_method": "Count rows where failure indicator = 1"
+        },
+        "class_balance": {
+          "metric": "Percentage of failure events",
+          "target": "> 0.5% of total data",
+          "validation_method": "failure_count / total_rows * 100"
+        }
+      },
+      "pattern_identification": {
+        "temporal_patterns_found": {
+          "metric": "Clear seasonality or trends detected",
+          "target": "Seasonal decomposition successful (p-value < 0.05)",
+          "validation_method": "statsmodels.tsa.seasonal.seasonal_decompose()"
+        },
+        "sensor_correlations_valid": {
+          "metric": "No physically impossible correlations",
+          "target": "All correlations within expected ranges",
+          "validation_method": "Manual review of correlation heatmap + domain knowledge"
+        },
+        "failure_vs_nonfailure_distinguishable": {
+          "metric": "Statistical difference between failure and non-failure distributions",
+          "target": "t-test or KS-test p-value < 0.05 for key features",
+          "validation_method": "scipy.stats.ttest_ind() or ks_2samp()"
+        }
+      },
+      "visual_inspection_quality": {
+        "defects_identifiable": {
+          "metric": "Visual defects can be identified in images",
+          "target": "Manual review confirms defects visible",
+          "validation_method": "Human inspection of sample images"
+        },
+        "image_quality_sufficient": {
+          "metric": "Image resolution and clarity adequate",
+          "target": "Mean SSIM (structural similarity) > 0.7 for non-degraded images",
+          "validation_method": "skimage.metrics.structural_similarity()"
+        }
+      },
+      "data_quality_remediation": {
+        "remaining_missing_data": {
+          "metric": "Percentage of missing data after cleaning",
+          "target": "< 15%",
+          "validation_method": "pandas.DataFrame.isna().sum().sum() / total_cells"
+        },
+        "outlier_handling": {
+          "metric": "Outliers identified and documented",
+          "target": "Outlier handling strategy documented in EDA notebooks",
+          "validation_method": "Check notebooks have outlier analysis section"
+        }
+      },
+      "deliverables_completeness": {
+        "notebooks_executed": {
+          "metric": "All EDA notebooks run without errors",
+          "target": "5 notebooks executed successfully",
+          "validation_method": "jupyter nbconvert --execute --to html for each notebook"
+        },
+        "visualizations_generated": {
+          "metric": "Key plots saved to /mnt/artifacts/",
+          "target": "Minimum 10 visualizations (heatmaps, distributions, time series)",
+          "validation_method": "Count PNG/HTML files in artifacts directory"
+        },
+        "data_quality_scorecard": {
+          "metric": "Scorecard HTML generated with pass/fail criteria",
+          "target": "Overall quality score > 75%",
+          "validation_method": "Check data_quality_scorecard.html exists with score calculation"
+        }
+      }
+    },
+    "human_review_gate": "REQUIRED - User must approve EDA findings before proceeding to feature engineering"
+  },
+
+  "epoch_004_success_criteria": {
+    "epoch_name": "Feature Engineering",
+    "definition_of_done": {
+      "data_leakage_prevention": {
+        "temporal_features_validated": {
+          "metric": "No future data used in feature calculation",
+          "target": "100% of features use only past data",
+          "validation_method": "Manual code review + unit tests for feature functions"
+        },
+        "train_test_split_valid": {
+          "metric": "Train/test split respects temporal order",
+          "target": "Test set only contains data after training set",
+          "validation_method": "max(train_timestamps) < min(test_timestamps)"
+        }
+      },
+      "feature_quality": {
+        "feature_importance_positive": {
+          "metric": "Percentage of features with non-zero importance",
+          "target": "> 80%",
+          "validation_method": "Train baseline model, calculate feature_importances_"
+        },
+        "multicollinearity_check": {
+          "metric": "No high correlation between features",
+          "target": "< 5% of feature pairs with correlation > 0.95",
+          "validation_method": "pandas.DataFrame.corr() threshold check"
+        },
+        "missing_values_in_features": {
+          "metric": "Percentage of missing values in engineered features",
+          "target": "< 5%",
+          "validation_method": "pandas.DataFrame.isna().sum()"
+        }
+      },
+      "multi_modal_fusion": {
+        "visual_features_extracted": {
+          "metric": "CNN embeddings generated for all images",
+          "target": "100% of images have embeddings",
+          "validation_method": "Check visual_features.parquet row count matches image count"
+        },
+        "temporal_alignment_validated": {
+          "metric": "Sensor and image features aligned by timestamp",
+          "target": "100% of combined rows have valid timestamps",
+          "validation_method": "Check combined_features.parquet for timestamp consistency"
+        }
+      },
+      "storage_efficiency": {
+        "feature_matrix_size": {
+          "metric": "Total size of engineered feature files",
+          "target": "< 5GB",
+          "validation_method": "Sum of sensor_features.parquet + visual_features.parquet + combined_features.parquet"
+        },
+        "sparse_representation": {
+          "metric": "Use sparse matrices for high-dimensional features if applicable",
+          "target": "Compress to < 50% of dense representation if >10k features",
+          "validation_method": "scipy.sparse.save_npz() for sparse features"
+        }
+      },
+      "documentation": {
+        "feature_metadata_complete": {
+          "metric": "feature_metadata.json documents all features",
+          "target": "100% of features documented with description, data type, source",
+          "validation_method": "Verify metadata JSON has entry for each feature column"
+        },
+        "unit_tests_passing": {
+          "metric": "All feature engineering unit tests pass",
+          "target": "100% pass rate",
+          "validation_method": "pytest /mnt/code/src/predictive_maintenance/tests/test_feature_engineering.py -v"
+        }
+      }
+    },
+    "human_review_gate": "REQUIRED - User must approve feature set before model training"
+  },
+
+  "epoch_005_success_criteria": {
+    "epoch_name": "Model Development and Training",
+    "definition_of_done": {
+      "baseline_performance": {
+        "recall_failure_detection": {
+          "metric": "Recall for detecting failures",
+          "target": "≥ 0.80",
+          "validation_method": "sklearn.metrics.recall_score() on test set"
+        },
+        "precision": {
+          "metric": "Precision for failure predictions",
+          "target": "≥ 0.70",
+          "validation_method": "sklearn.metrics.precision_score() on test set"
+        },
+        "auc_roc": {
+          "metric": "Area under ROC curve",
+          "target": "≥ 0.75",
+          "validation_method": "sklearn.metrics.roc_auc_score() on test set"
+        },
+        "lead_time_accuracy": {
+          "metric": "Mean absolute error for time-to-failure prediction",
+          "target": "≤ 3 days",
+          "validation_method": "Mean absolute difference between predicted and actual failure time"
+        }
+      },
+      "model_robustness": {
+        "cross_validation_consistency": {
+          "metric": "Standard deviation of AUC across CV folds",
+          "target": "< 0.05",
+          "validation_method": "sklearn.model_selection.cross_val_score(cv=5)"
+        },
+        "overfitting_check": {
+          "metric": "Train-test performance gap",
+          "target": "Train AUC - Test AUC < 0.10",
+          "validation_method": "Compare metrics on train vs test sets"
+        }
+      },
+      "model_registry": {
+        "mlflow_registration": {
+          "metric": "Model registered in MLflow Model Registry",
+          "target": "predictive_maintenance_model version 1.0 exists",
+          "validation_method": "mlflow.MlflowClient().get_registered_model()"
+        },
+        "model_artifacts_logged": {
+          "metric": "All model files and metadata logged",
+          "target": "Model pickle/h5, requirements.txt, config.yaml logged",
+          "validation_method": "Check MLflow run artifacts"
+        }
+      },
+      "explainability": {
+        "shap_values_computed": {
+          "metric": "SHAP values available for predictions",
+          "target": "SHAP explainer object saved with model",
+          "validation_method": "shap.TreeExplainer() or shap.DeepExplainer() saved"
+        },
+        "feature_importance_logged": {
+          "metric": "Feature importance values logged to MLflow",
+          "target": "Top 20 features logged as metrics",
+          "validation_method": "Check MLflow run has feature_importance metrics"
+        }
+      },
+      "reusability": {
+        "model_utils_extracted": {
+          "metric": "Reusable code extracted to src/",
+          "target": "/mnt/code/src/predictive_maintenance/model_utils.py exists",
+          "validation_method": "File exists and passes unit tests"
+        },
+        "industry_adapters_created": {
+          "metric": "Industry-specific adapter modules created",
+          "target": "industry_adapters.py with config for manufacturing, military, oil_gas, logistics",
+          "validation_method": "Verify adapter file has configurations for all 4 industries"
+        }
+      }
+    },
+    "human_review_gate": "Not required for Epoch 005 → 006 transition (automated validation only)"
+  },
+
+  "epoch_006_success_criteria": {
+    "epoch_name": "Comprehensive Model Testing and Validation",
+    "definition_of_done": {
+      "mandatory_pass_criteria": {
+        "recall_failure_detection": {
+          "metric": "Recall for detecting failures",
+          "target": "≥ 0.95",
+          "blocker_if_failed": true,
+          "validation_method": "sklearn.metrics.recall_score() on comprehensive test set"
+        },
+        "precision_at_95_recall": {
+          "metric": "Precision when recall is set to 95%",
+          "target": "≥ 0.30",
+          "blocker_if_failed": true,
+          "validation_method": "Adjust threshold to achieve 95% recall, measure precision"
+        },
+        "early_detection_rate": {
+          "metric": "Percentage of failures detected ≥7 days in advance",
+          "target": "≥ 80%",
+          "blocker_if_failed": true,
+          "validation_method": "Count predictions where lead_time >= 7 days"
+        },
+        "edge_case_robustness": {
+          "metric": "Percentage of edge case tests passed",
+          "target": "≥ 70%",
+          "blocker_if_failed": true,
+          "validation_method": "Count passed edge case tests / total edge case tests"
+        },
+        "latency_p95": {
+          "metric": "95th percentile inference latency for batch predictions",
+          "target": "≤ 100ms",
+          "blocker_if_failed": true,
+          "validation_method": "Time 1000 batch predictions, calculate 95th percentile"
+        },
+        "safety_compliance": {
+          "metric": "Percentage of safety-critical scenarios passed",
+          "target": "100%",
+          "blocker_if_failed": true,
+          "validation_method": "Manual review of safety test cases"
+        }
+      },
+      "warning_criteria": {
+        "cross_equipment_transfer": {
+          "metric": "Performance retention when tested on different equipment types",
+          "target": "≥ 70% of source domain performance",
+          "blocker_if_failed": false,
+          "validation_method": "Test on held-out equipment types, compare AUC"
+        },
+        "sensor_drift_robustness": {
+          "metric": "Performance degradation with 10% sensor drift",
+          "target": "≤ 10% AUC degradation",
+          "blocker_if_failed": false,
+          "validation_method": "Simulate 10% drift, measure AUC change"
+        },
+        "missing_data_handling": {
+          "metric": "Performance degradation with 20% missing sensors",
+          "target": "≤ 20% AUC degradation",
+          "blocker_if_failed": false,
+          "validation_method": "Randomly drop 20% of sensors, measure AUC change"
+        },
+        "explainability_quality": {
+          "metric": "Percentage of high-risk predictions with clear explanations",
+          "target": "≥ 80%",
+          "blocker_if_failed": false,
+          "validation_method": "Manual review of SHAP explanations for top 100 high-risk predictions"
+        }
+      },
+      "go_no_go_decision": {
+        "pass": {
+          "condition": "All mandatory criteria met AND ≤ 2 warning criteria failed",
+          "action": "Promote model to Staging, proceed to Epoch 007"
+        },
+        "conditional_pass": {
+          "condition": "All mandatory criteria met AND 3-4 warning criteria failed",
+          "action": "Promote to Staging with enhanced monitoring, document known limitations"
+        },
+        "fail": {
+          "condition": "Any mandatory criterion failed OR > 4 warning criteria failed",
+          "action": "Return to Epoch 005 for model improvements"
+        }
+      },
+      "deliverables": {
+        "comprehensive_test_report": {
+          "metric": "test_results_comprehensive.html exists",
+          "target": "File generated with all test results",
+          "validation_method": "File exists and contains sections for all test categories"
+        },
+        "compliance_report": {
+          "metric": "compliance_report.pdf exists",
+          "target": "PDF with safety, audit trail, explainability validation",
+          "validation_method": "PDF file exists and is valid"
+        },
+        "model_promoted_to_staging": {
+          "metric": "Model stage in MLflow Registry",
+          "target": "Stage = 'Staging'",
+          "validation_method": "mlflow.MlflowClient().get_model_version()"
+        }
+      }
+    },
+    "human_review_gate": "REQUIRED - User must approve test results and deployment decision"
+  },
+
+  "epoch_007_success_criteria": {
+    "epoch_name": "Deployment and Streamlit Application Development",
+    "definition_of_done": {
+      "deployment_technical_metrics": {
+        "model_api_latency": {
+          "metric": "95th percentile latency for Model API predictions",
+          "target": "< 100ms",
+          "validation_method": "Load testing with 1000 requests, measure p95"
+        },
+        "streamlit_app_load_time": {
+          "metric": "Time to interactive for Streamlit app",
+          "target": "< 3 seconds",
+          "validation_method": "Browser developer tools network tab"
+        },
+        "alert_generation_latency": {
+          "metric": "End-to-end time from prediction to alert display",
+          "target": "< 200ms",
+          "validation_method": "Time from API call to UI update"
+        },
+        "pdf_generation_time": {
+          "metric": "Time to generate insights PDF via LLM",
+          "target": "< 10 seconds",
+          "validation_method": "Time LLM API call + PDF rendering"
+        },
+        "load_test_success": {
+          "metric": "Zero critical errors during 100-user load test",
+          "target": "0 errors, 0 timeouts",
+          "validation_method": "locust or similar load testing tool"
+        }
+      },
+      "application_functionality": {
+        "executive_overview_tab": {
+          "metric": "Heat charts display equipment health for fleet",
+          "target": "Displays health status for 100+ assets",
+          "validation_method": "Manual UI testing with sample data"
+        },
+        "operations_tab": {
+          "metric": "Real-time alerts display critical equipment",
+          "target": "Alerts sorted by failure probability, <60s refresh",
+          "validation_method": "Manual UI testing with live data stream"
+        },
+        "insights_tab": {
+          "metric": "LLM generates coherent PDF recommendations",
+          "target": "PDF includes root cause analysis, maintenance recommendations, cost-benefit",
+          "validation_method": "Manual review of 5 sample PDFs"
+        }
+      },
+      "monitoring_operational": {
+        "drift_detection_active": {
+          "metric": "Monitoring dashboard shows drift metrics",
+          "target": "Dashboard displays prediction drift, feature drift, KS-test p-values",
+          "validation_method": "Check monitoring_dashboard.py running and accessible"
+        },
+        "automated_alerts_configured": {
+          "metric": "Email/Slack alerts trigger on drift detection",
+          "target": "Alert sent when >30% features drift or prediction distribution changes",
+          "validation_method": "Simulate drift, verify alert received"
+        }
+      },
+      "deployment_documentation": {
+        "api_documentation": {
+          "metric": "API documentation complete",
+          "target": "OpenAPI spec or equivalent with all endpoints documented",
+          "validation_method": "Verify API docs accessible at /docs endpoint"
+        },
+        "deployment_guide": {
+          "metric": "deployment_guide.md exists with setup instructions",
+          "target": "Guide includes environment setup, model deployment, app deployment",
+          "validation_method": "File exists and is readable"
+        },
+        "rollback_plan": {
+          "metric": "Rollback procedure documented and tested",
+          "target": "Can rollback to previous model version in < 5 minutes",
+          "validation_method": "Test rollback procedure in staging environment"
+        }
+      },
+      "mlflow_model_registry": {
+        "model_promoted_to_production": {
+          "metric": "Model stage in MLflow Registry",
+          "target": "Stage = 'Production'",
+          "validation_method": "mlflow.MlflowClient().get_model_version()"
+        }
+      },
+      "reusability": {
+        "deployment_utils_extracted": {
+          "metric": "Reusable deployment code in src/",
+          "target": "deployment_utils.py and monitoring_utils.py exist with unit tests",
+          "validation_method": "Files exist and pytest passes"
+        }
+      }
+    },
+    "human_review_gate": "REQUIRED - User must approve deployed application before production release"
+  },
+
+  "epoch_008_success_criteria": {
+    "epoch_name": "Comprehensive ML Lifecycle Retrospective",
+    "definition_of_done": {
+      "agent_reports_completeness": {
+        "all_agent_reports_created": {
+          "metric": "7 agent-specific lessons learned reports exist",
+          "target": "All reports in /mnt/code/epoch008-retrospective/lessons_learned/",
+          "validation_method": "Count markdown files in lessons_learned/ directory"
+        },
+        "report_quality": {
+          "metric": "Each report includes successes, challenges, recommendations",
+          "target": "Minimum 3 sections per report",
+          "validation_method": "Manual review of report structure"
+        }
+      },
+      "performance_analysis_completeness": {
+        "actual_vs_estimated_analysis": {
+          "metric": "actual_vs_estimated.json exists with all epochs",
+          "target": "JSON has estimated and actual time/resources for Epochs 002-007",
+          "validation_method": "Verify JSON structure and completeness"
+        },
+        "resource_utilization_analysis": {
+          "metric": "resource_utilization.json documents compute, storage, cost",
+          "target": "All resource metrics documented",
+          "validation_method": "Verify JSON has compute, storage, cost sections"
+        },
+        "cost_breakdown": {
+          "metric": "cost_breakdown.json itemizes all project costs",
+          "target": "Includes compute, LLM API, storage, human effort",
+          "validation_method": "Verify all cost categories present"
+        }
+      },
+      "playbook_completeness": {
+        "reusable_playbook_created": {
+          "metric": "predictive_maintenance_playbook.md exists",
+          "target": "Playbook includes timeline, tech stack, resource requirements, pitfalls",
+          "validation_method": "File exists with minimum 5 sections"
+        },
+        "industry_adaptation_guidance": {
+          "metric": "Playbook includes guidance for adapting to other industries",
+          "target": "Section on military, oil_gas, logistics adaptations",
+          "validation_method": "Verify playbook has industry-specific sections"
+        }
+      },
+      "visualizations": {
+        "project_timeline_visualization": {
+          "metric": "project_timeline.html shows visual timeline of all epochs",
+          "target": "Interactive HTML with checkpoints, reviews, blockers",
+          "validation_method": "File exists and renders in browser"
+        }
+      },
+      "final_recommendations": {
+        "recommendations_document": {
+          "metric": "final_recommendations.md exists",
+          "target": "Includes process improvements, technical improvements, resource optimization",
+          "validation_method": "File exists with minimum 3 recommendation categories"
+        }
+      }
+    },
+    "human_review_gate": "OPTIONAL - User may review retrospective findings for future projects"
+  },
+
+  "overall_project_success_criteria": {
+    "business_metrics": {
+      "cost_reduction_target": {
+        "metric": "Estimated maintenance cost reduction vs reactive approach",
+        "target": "≥ 30%",
+        "validation_method": "Calculate (prevented_failures * failure_cost) - (false_alarms * inspection_cost)"
+      },
+      "model_accuracy_deployment": {
+        "metric": "Production model AUC-ROC",
+        "target": "≥ 0.88",
+        "validation_method": "MLflow logged metric from production model"
+      },
+      "application_adoption": {
+        "metric": "Streamlit app used by stakeholders",
+        "target": "Regular usage (>10 sessions/week)",
+        "validation_method": "Domino App usage analytics"
+      }
+    },
+    "technical_metrics": {
+      "reusable_code_percentage": {
+        "metric": "Percentage of code extracted to src/ for reusability",
+        "target": "≥ 60% of core logic",
+        "validation_method": "Lines of code in src/ vs total code written"
+      },
+      "multi_industry_transferability": {
+        "metric": "Model can be adapted to new industry with <20% data",
+        "target": "Achieves ≥80% of full-industry performance",
+        "validation_method": "Few-shot learning test on held-out industry"
+      },
+      "zero_resource_limit_violations": {
+        "metric": "No file >50MB, no operation >12GB RAM",
+        "target": "100% compliance",
+        "validation_method": "Review all checkpoints and logs for resource violations"
+      }
+    },
+    "process_metrics": {
+      "all_quality_gates_passed": {
+        "metric": "All epoch handoff quality gates passed",
+        "target": "100% pass rate",
+        "validation_method": "Review pipeline_state.json for gate results"
+      },
+      "human_reviews_completed": {
+        "metric": "All required human review gates completed",
+        "target": "5 review gates completed (after Epochs 001, 003, 004, 006, 007)",
+        "validation_method": "Review approval_log.json"
+      },
+      "timeline_variance": {
+        "metric": "Actual vs estimated timeline",
+        "target": "Within 20% of estimated 22-25 business days",
+        "validation_method": "Compare actual completion date to plan"
+      }
+    }
+  }
+}
